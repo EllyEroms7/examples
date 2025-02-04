@@ -1,0 +1,11 @@
+body, html {
+  padding: 0%;
+  margin: 0%;
+}
+
+.webgl {
+  position: fixed;
+  width: 100%;
+  background-color: #000000;
+  height: 100vh;
+}

@@ -6,8 +6,13 @@ import { OrbitControls, Stats } from "@react-three/drei";
 const Renderer = () => {
   return (
     <div className="webgl">
-      <Canvas camera={{ position: new THREE.Vector3(0, 0, 2) }}>
+      <Canvas
+        camera={{
+          position: new THREE.Vector3(0, 0, 7),
+        }}
+      >
         <Stats />
+
         <OrbitControls />
         <Water />
       </Canvas>

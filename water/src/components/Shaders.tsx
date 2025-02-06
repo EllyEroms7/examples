@@ -35,8 +35,6 @@ uniform float uLacunarity;
 uniform int uIterations;
 uniform float uSpeed;
 
-varying vec3 vNormal;
-varying vec3 vWorldPosition;
 varying float vElevation; 
 
 float calculateElevation(vec2 p){
@@ -53,53 +51,27 @@ float calculateElevation(vec2 p){
 
 void main() {
   vec4 modelPosition = modelMatrix * vec4(position, 1.0);
-  vWorldPosition = modelPosition.xyz;
   float elevation =calculateElevation(uv);
-
-  float eps = 0.001;
-vec3 p = modelPosition.xyz;
-vec3 px = vec3(p.x+eps, calculateElevation(vec2(p.x+eps,p.z)),p.z);
-vec3 pz = vec3(p.x, calculateElevation(vec2(p.x,p.z+eps)),p.z+eps);
-vec3 tangent = normalize(px-p);
-vec3 bitangent = normalize(pz-p);
-vNormal = normalize(cross(tangent,bitangent));
-
   modelPosition.y += elevation;
   vElevation = elevation;
-  gl_Position = projectionMatrix * viewMatrix * modelPosition;
+ csm_Position =modelPosition.xyz;
 }
 `;
 
 export const fragmentShader = /*glsl*/ `
-uniform vec3 uSurfaceColour;
-uniform float uOpacity;
 uniform float uPeakTransition;
 uniform float uPeakThreshold;
 uniform float uTroughTransition;
 uniform float uTroughThreshold;
 
-uniform float uFresnelStrength;
-uniform float uFresnelPower;
-uniform samplerCube uEnvMap;
 
-varying vec3 vWorldPosition;
 varying float vElevation; 
-varying vec3 vNormal;
 
 void main(){
   //Water Colour
 vec3 troughColor = vec3(0.0, 0.12, 0.25);    // Dark Blue (#001f3f)
-vec3 peakColor = vec3(0.24, 0.76, 0.83);     // Seafoam Green (#3EC1D3)
-vec3 surfaceColor = vec3(0.0, 0.75, 1.0);    // Cyan (#00BFFF)
-
-//Reflection/fresnel
-vec3 viewDirection = normalize(vWorldPosition-cameraPosition);
-vec3 reflected = reflect(viewDirection,vNormal);
-reflected*=-1.;
-vec4 reflectionColour = textureCube(uEnvMap,reflected);
-
-float fresnel = 
-uFresnelStrength *pow(1.-clamp(dot(viewDirection,vNormal),.0,1.),uFresnelPower);
+vec3 peakColor = vec3(.24, 0.76, 0.83);     // Seafoam Green (#3EC1D3)
+vec3 surfaceColor = vec3(.0, .75, 1.0);    // Cyan (#00BFFF)
 
 
 //Transition
@@ -110,8 +82,7 @@ float surfacePeak = smoothstep(uPeakThreshold-uPeakTransition,uPeakThreshold+uPe
 
 vec3 mixedColour1 = mix(troughColor,surfaceColor,troughSurface);
 vec3 mixedColour2 = mix(mixedColour1,peakColor,surfacePeak);
-vec3 finalColour = mix(mixedColour2,reflectionColour.rgb,fresnel);
 
-    gl_FragColor = vec4(finalColour,uOpacity);
+    csm_DiffuseColor = vec4(mixedColour2,1.);
 }
 `;
